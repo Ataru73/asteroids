@@ -106,6 +106,14 @@ class Game(window.Window):
                         batch=self.batch, group=self.gamelayer)
             self.asteroids.add(asteroid)
 
+    def spawn_asteroid_at_position(self, dt=0, position=(-1000, -1000), velocity=(0, 0)):
+        if not self.started:
+            return
+
+        if len(self.asteroids) < MAX_ROCKS:
+            asteroid = load.asteroid(self.player.position, screensize=self.size, score=self.score, pos=position, vel=velocity,
+                        batch=self.batch, group=self.gamelayer)
+            self.asteroids.add(asteroid)
 
     def on_draw(self):
         self.clear()
@@ -120,7 +128,17 @@ class Game(window.Window):
 
         bullet_explosions = physicalobject.group_group_collide(self.player.bullets, self.asteroids)
         self.explosions.update(bullet_explosions)
-        self.score += len(bullet_explosions)
+        
+        try:
+            explosion = bullet_explosions.pop();
+            velocity1 = (2*explosion.vel[1], 2*explosion.vel[0])
+            velocity2 = (-2*explosion.vel[1], -2*explosion.vel[0])   
+
+            self.spawn_asteroid_at_position(dt=0, position=(explosion.x, explosion.y), velocity=velocity1)
+            self.spawn_asteroid_at_position(dt=0, position=(explosion.x, explosion.y), velocity=velocity2)
+            self.score += len(bullet_explosions)
+        except:
+            pass
 
         if self.player.opacity == 255:
             # Look if ship collides with asteroids

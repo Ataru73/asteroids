@@ -96,7 +96,7 @@ class Ship(physicalobject.PhysicalObject):
                 angle += 90
                 counter += 1
             if self.keyMask & self.D_PRESSED:
-                angle += 0
+                angle += 360
                 counter += 1
                 
             angle /= counter;

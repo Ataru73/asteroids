@@ -8,16 +8,18 @@ from . import ship as ship_
 import random
 
 
-def asteroid(player_pos=(-1000,-1000), screensize=(800,600), score=0, *args, **kwargs):
+def asteroid(player_pos=(-1000,-1000), screensize=(800,600), score=0, pos=[0, 0], vel=[0, 0], *args, **kwargs):
     """spawns an asteroid at random position"""
 
-    pos = util.random_pos(screensize)
-    while util.distance(pos, player_pos) < 300:
-        pos = util.random_pos(screensize)
+    if pos == [0, 0]:
+        pos = util.random_pos(screensize)        
+        while util.distance(pos, player_pos) < 300:
+            pos = util.random_pos(screensize)
 
     max_speed = 90 + score * 3
 
-    vel = [random.randrange(-max_speed, max_speed) for i in (0,1)]
+    if vel == [0, 0]:
+        vel = [random.randrange(-max_speed, max_speed) for i in (0,1)]
     #vel = [0,0]
 
     rotation_speed = random.randrange(-250, 250)
