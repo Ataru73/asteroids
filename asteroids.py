@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 *-*
 
-from pyglet import window, app, graphics, clock, text
 import pyglet
+from pyglet import window, app, graphics, clock, text
 from game import load, resources, physicalobject
 
 clock.set_fps_limit(None)
