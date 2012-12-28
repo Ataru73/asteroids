@@ -80,8 +80,6 @@ class Ship(physicalobject.PhysicalObject):
             self.keyMask |= self.S_PRESSED
         elif symbol == key.D:
             self.keyMask |= self.D_PRESSED
-            self.shoot_angle = 360
-            self.shoot(self.shoot_angle)
   
         angle = 0
         counter = 0;
