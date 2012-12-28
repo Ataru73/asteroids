@@ -37,7 +37,7 @@ class Ship(physicalobject.PhysicalObject):
         elif axis == 'y':
             self.forward[1] = -value
             do_update = True
-        elif axis == 'rx':
+        elif axis == 'z':
             self.shoot_vect[0] = value
             self.shoot(self.shoot_vect)
         elif axis == 'rz':
