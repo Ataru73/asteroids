@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 *-*
 
-import pyglet
 from pyglet import window, app, graphics, clock, text
+import pyglet
 from game import load, resources, physicalobject
+
+clock.set_fps_limit(None)
 
 MAX_ROCKS = 12
 LIVES = 3
@@ -56,23 +58,24 @@ class Game(window.Window):
         self.score_label = text.Label(font_size=20, anchor_x='right', text="Score: %d" % self.score, x=self.size[0]-40,
                     y=self.size[1]-40, batch=self.batch, group=toplayer)
 
-        self.push_handlers(self.player)
-        self.push_handlers(self.splashscreen)
-
-        # add event handlers to the ship and splashscreen
-        joysticks = pyglet.input.get_joysticks()
-        for joystick in joysticks:
-            joystick.open()
-            joystick.push_handlers(self.player)
+        # update frequency
+        clock.schedule_interval(self.update, 1 / 120)
 
         # spawn a new asteroid each second
         clock.schedule_interval(self.spawn_asteroid, 1)
 
-        # update function
-        # upstream bug: more than 60hz and joypad stops generating events!
-        clock.schedule_interval(self.update, 1 / 60)
-
-
+        # add event handlers to the ship and splashscreen
+        joysticks = pyglet.input.get_joysticks()
+        try:
+            joystick = joysticks[0]
+            joystick.open()
+            joystick.push_handlers(self.player)
+        except:
+            pass
+			
+        self.push_handlers(self.player)
+        self.push_handlers(self.splashscreen)
+        
     def start(self):
         self.score = 0
         self.lives = LIVES
@@ -98,8 +101,17 @@ class Game(window.Window):
                         batch=self.batch, group=self.gamelayer)
             self.asteroids.add(asteroid)
 
+    def spawn_asteroid_at_position(self, dt=0, position=(-1000, -1000), velocity=(0, 0), scale=1.0):
+        if not self.started:
+            return
+        
+        if len(self.asteroids) < MAX_ROCKS:
+            asteroid = load.asteroid(self.player.position, screensize=self.size, score=self.score, pos=position, vel=velocity, scale=scale,
+                        batch=self.batch, group=self.gamelayer)
+            self.asteroids.add(asteroid)
 
     def on_draw(self):
+        self.clear()
         self.batch.draw()
         self.fps_display.draw()
 
@@ -111,7 +123,17 @@ class Game(window.Window):
 
         bullet_explosions = physicalobject.group_group_collide(self.player.bullets, self.asteroids)
         self.explosions.update(bullet_explosions)
-        self.score += len(bullet_explosions)
+        
+        try:
+            explosion = bullet_explosions.pop();
+            velocity1 = (3*explosion.vel[1], 3*explosion.vel[0])
+            velocity2 = (-3*explosion.vel[1], -3*explosion.vel[0])   
+
+            self.spawn_asteroid_at_position(dt=0, position=(explosion.x, explosion.y), velocity=velocity1, scale=explosion.scale / 2)
+            self.spawn_asteroid_at_position(dt=0, position=(explosion.x, explosion.y), velocity=velocity2, scale=explosion.scale / 2)
+            self.score += len(bullet_explosions)
+        except:
+            pass
 
         if self.player.opacity == 255:
             # Look if ship collides with asteroids

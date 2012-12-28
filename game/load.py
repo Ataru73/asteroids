@@ -8,16 +8,21 @@ from . import ship as ship_
 import random
 
 
-def asteroid(player_pos=(-1000,-1000), screensize=(800,600), score=0, *args, **kwargs):
+def asteroid(player_pos=(-1000,-1000), screensize=(800,600), score=0, pos=[0, 0], vel=[0, 0], scale=1.0, *args, **kwargs):
     """spawns an asteroid at random position"""
 
-    pos = util.random_pos(screensize)
-    while util.distance(pos, player_pos) < 300:
-        pos = util.random_pos(screensize)
+    doScale = False;
+    if pos == [0, 0]:
+        pos = util.random_pos(screensize)        
+        while util.distance(pos, player_pos) < 300:
+            pos = util.random_pos(screensize)
 
     max_speed = 90 + score * 3
 
-    vel = [random.randrange(-max_speed, max_speed) for i in (0,1)]
+    if vel == [0, 0]:
+        vel = [random.randrange(-max_speed, max_speed) for i in (0,1)]
+    else:
+        doScale = True;
     #vel = [0,0]
 
     rotation_speed = random.randrange(-250, 250)
@@ -25,6 +30,9 @@ def asteroid(player_pos=(-1000,-1000), screensize=(800,600), score=0, *args, **k
 
     asteroid = physicalobject.PhysicalObject(vel=vel, rotation_speed=rotation_speed, x=pos[0], y=pos[1],
             img=img, screensize=screensize, *args, **kwargs)
+    if doScale == True:
+        asteroid.scale = scale
+    
     return asteroid
 
 

@@ -22,37 +22,44 @@ class Ship(physicalobject.PhysicalObject):
         self.normal_image = self.image
 
         self.bullets = set() # FIXME: bullet by OOT
-        self.forward = [0, 0]
-        self.shoot_vect = [0, 0]
+        self.forward = [0, 1]
+        self.shoot_angle = [0, 0]
+        
+        self.keyMask = 0;
+        self.W_PRESSED = 1
+        self.A_PRESSED = 2
+        self.S_PRESSED = 4
+        self.D_PRESSED = 8
+
+    def on_joybutton_press(self, joystick, button):
+        self.shoot()
 
 
     def on_joyaxis_motion(self, joystick, axis, value):
-        if axis == 'z': # bug on my joypad
-            return
+        #i = {'x': (self.forward, 0)
+        #     'y': (self.forward, 1),
+        #     'rz': (self.shoot_angle, 0),
+        #     'rx': (self.shoot_angle, 1),
+        #i[axis][0][axis][1] = valie }
 
-        do_update = False
+        print(axis, value)
         if axis == 'x':
             self.forward[0] = value
             do_update = True
         elif axis == 'y':
             self.forward[1] = -value
             do_update = True
-        elif axis == 'z':
-            self.shoot_vect[0] = value
-            self.shoot(self.shoot_vect)
+        elif axis == 'rx':
+            self.shoot_angle[1] = -value
+            self.shoot(shoot_angle)
         elif axis == 'rz':
-            self.shoot_vect[1] = -value
-            self.shoot(self.shoot_vect)
+            self.shoot_angle[0] = value
+            self.shoot(shoot_angle)
+        else:
+            do_update = False
 
         if do_update:
-            if abs(value) > 0.2:
-                self.thrust = True
-                self.rotation = util.vector_to_angle(self.forward)
-            else:
-                self.thrust = False
-
-    #def on_joybutton_press(self, joystick, button):
-    #    self.shoot()
+            self.rotation = util.vector_to_angle(self.forward)
 
 
     def on_key_press(self, symbol, modifiers):
@@ -64,7 +71,37 @@ class Ship(physicalobject.PhysicalObject):
             self.turn(1)
         elif symbol == key.UP:
             self.set_thrust(True)
-
+        
+        if symbol == key.W:    
+            self.keyMask |= self.W_PRESSED
+        elif symbol == key.A:
+            self.keyMask |= self.A_PRESSED
+        elif symbol == key.S:
+            self.keyMask |= self.S_PRESSED
+        elif symbol == key.D:
+            self.keyMask |= self.D_PRESSED
+            self.shoot_angle = 360
+            self.shoot(self.shoot_angle)
+  
+        angle = 0
+        counter = 0;
+        if self.keyMask != 0:
+            if self.keyMask & self.W_PRESSED:
+                angle += 270
+                counter += 1
+            if self.keyMask & self.A_PRESSED:
+                angle += 180
+                counter += 1
+            if self.keyMask & self.S_PRESSED:
+                angle += 90
+                counter += 1
+            if self.keyMask & self.D_PRESSED:
+                angle += 360
+                counter += 1
+                
+            angle /= counter;
+            self.shoot(angle)
+            
 
     def on_key_release(self, symbol, modifiers):
         if symbol in (key.LEFT, key.RIGHT):
@@ -72,6 +109,14 @@ class Ship(physicalobject.PhysicalObject):
         elif symbol == key.UP:
             self.set_thrust(False)
 
+        if symbol == key.W:    
+            self.keyMask &= ~self.W_PRESSED
+        elif symbol == key.A:
+            self.keyMask &= ~self.A_PRESSED
+        elif symbol == key.S:
+            self.keyMask &= ~self.S_PRESSED
+        elif symbol == key.D:
+            self.keyMask &= ~self.D_PRESSED
 
     def update(self, dt):
         super().update(dt)
@@ -110,14 +155,14 @@ class Ship(physicalobject.PhysicalObject):
         self.rotation_speed = clockwise * self.rotate_speed
 
 
-    def shoot(self, shoot_vect=None):
+    def shoot(self, angle=None):
         resources.bullet_sound.play()
 
-        if not shoot_vect:
+        if not angle:
             forward = util.angle_to_vector(self.rotation)
         else:
-            forward = shoot_vect
-
+            forward = util.angle_to_vector(angle)
+            
         bullet_pos = [self.x + self.radius * forward[0], self.y + self.radius * forward[1]]
         bullet_vel = [self.vel[0] + self.bullet_speed * forward[0], self.vel[1] + self.bullet_speed * forward[1]]
         bullet = physicalobject.PhysicalObject(lifespan=self.bullet_duration, vel=bullet_vel, x=bullet_pos[0], y=bullet_pos[1],
@@ -148,3 +193,4 @@ class Ship(physicalobject.PhysicalObject):
         # be invulnerable for a brief time
         self.opacity = 128
         clock.schedule_once(self.normal_mode, time)
+    
