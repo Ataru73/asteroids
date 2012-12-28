@@ -48,4 +48,7 @@ def angle_to_vector(rotation):
 def vector_to_angle(vector):
     return -math.degrees(math.atan2(vector[1], vector[0]))
 
+def vector_add(a, b):
+        return [a[0] + b[0], a[1] + b[1]]
+
 

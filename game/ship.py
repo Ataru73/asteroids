@@ -42,19 +42,19 @@ class Ship(physicalobject.PhysicalObject):
         #     'rx': (self.shoot_angle, 1),
         #i[axis][0][axis][1] = valie }
 
-        print(axis, value)
+        do_update = False
         if axis == 'x':
             self.forward[0] = value
             do_update = True
         elif axis == 'y':
             self.forward[1] = -value
             do_update = True
-        elif axis == 'rx':
-            self.shoot_angle[1] = -value
-            self.shoot(shoot_angle)
         elif axis == 'rz':
+            self.shoot_angle[1] = -value
+            self.shoot(self.shoot_angle)
+        elif axis == 'z':
             self.shoot_angle[0] = value
-            self.shoot(shoot_angle)
+            self.shoot(self.shoot_angle)
         else:
             do_update = False
 
@@ -81,24 +81,19 @@ class Ship(physicalobject.PhysicalObject):
         elif symbol == key.D:
             self.keyMask |= self.D_PRESSED
   
-        angle = 0
-        counter = 0;
+        shoot_direction = [0, 0]
         if self.keyMask != 0:
             if self.keyMask & self.W_PRESSED:
-                angle += 270
-                counter += 1
+                shoot_direction = util.vector_add(shoot_direction, [0, 1])
             if self.keyMask & self.A_PRESSED:
-                angle += 180
-                counter += 1
+                shoot_direction = util.vector_add(shoot_direction, [-1, 0])
             if self.keyMask & self.S_PRESSED:
-                angle += 90
-                counter += 1
+                shoot_direction  = util.vector_add(shoot_direction, [0, -1])
             if self.keyMask & self.D_PRESSED:
-                angle += 360
-                counter += 1
-                
-            angle /= counter;
-            self.shoot(angle)
+                shoot_direction = util.vector_add(shoot_direction, [1, 0])
+
+            print(util.vector_to_angle(shoot_direction))
+            self.shoot(shoot_direction)
             
 
     def on_key_release(self, symbol, modifiers):
@@ -159,7 +154,7 @@ class Ship(physicalobject.PhysicalObject):
         if not angle:
             forward = util.angle_to_vector(self.rotation)
         else:
-            forward = util.angle_to_vector(angle)
+            forward = angle
             
         bullet_pos = [self.x + self.radius * forward[0], self.y + self.radius * forward[1]]
         bullet_vel = [self.vel[0] + self.bullet_speed * forward[0], self.vel[1] + self.bullet_speed * forward[1]]
